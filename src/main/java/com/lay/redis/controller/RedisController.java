@@ -132,6 +132,13 @@ public class RedisController {
         listOps.leftPush("v0");
         System.out.println("----------从左边插入链表----------------: " + "v0");
         listOps.range(0, listOps.size() - 1).forEach(s -> System.out.println(s));
+        listOps.range(0, listOps.size() - 1).forEach(new Consumer<String>() {
+            
+            @Override
+            public void accept(String s) {
+                System.out.println();
+            }
+        });
         //链表长度
         Long size = listOps.size();
         //求链表下标区间成员，整个链表下标范围为0到size-1，这里不取最后一个元素
@@ -144,7 +151,7 @@ public class RedisController {
     }
     
     /**
-     * 测试redis list列表
+     * 测试redis set
      * @return
      * @Date        2018年11月1日 下午1:58:25 
      * @Author      lay
@@ -183,7 +190,7 @@ public class RedisController {
     }
     
     /**
-     * 测试redis list列表
+     * 测试redis zset
      * @return
      * @Date        2018年11月1日 下午1:58:25 
      * @Author      lay
