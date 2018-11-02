@@ -1,5 +1,6 @@
 package com.lay.redis.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -15,6 +16,7 @@ import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.BoundSetOperations;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.DefaultTypedTuple;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
@@ -307,6 +309,76 @@ public class RedisController {
         Set<String> reverseSet = zsetOps.reverseRange(0, zsetOps.size() - 1);
         System.out.println("-----------按从大到小排序---------------");
         reverseSet.forEach(s -> System.out.println(s));
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("success", true);
+        return map;
+    }
+    
+    /**
+     * redis 开启事务
+     * @return
+     * @Date        2018年11月2日 上午10:13:19 
+     * @Author      lay
+     */
+    @RequestMapping(value = "/multi")
+    @ResponseBody
+    public Map<String, Object> testMulti() {
+        redisTemplate.opsForValue().set("key1", "value1");
+        List list = (List)redisTemplate.execute((RedisOperations operations) -> {
+            //设置要监控的Key
+            operations.watch("key1");
+            //开启事务。在exec命令执行前，全部都只是进入队列
+            operations.multi();
+            operations.opsForValue().set("key2", "value2");
+            //获取值为null，因为redis只是把命令放入队列
+            Object value2 = operations.opsForValue().get("key2");
+            System.out.println("命令在队列中，所以key2为null【" + value2 + "】");
+            operations.opsForValue().set("key3", "value3");
+            System.out.println("命令在队列中，所以key3为null【" + value2 + "】");
+            //执行exec命令，将先判断key1是否在监控后被修改过，如果是则不执行事务，否则就执行事务
+            return operations.exec();
+        });
+        
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("success", true);
+        return map;
+    }
+    
+    /**
+     * redis 流水线
+     * @return
+     * @Date        2018年11月2日 上午10:13:29 
+     * @Author      lay
+     */
+    @RequestMapping(value = "/pipeline")
+    @ResponseBody
+    public Map<String, Object> testPipeLine() {
+        Long start = System.currentTimeMillis();
+        List list = redisTemplate.executePipelined((RedisOperations operations) -> {
+            for (int i = 1; i <= 100000; i++) {
+                operations.opsForValue().set("pipeline_" + i, "value" + i);
+                String value = (String)operations.opsForValue().get("pipeline_" + i);
+                if (i == 100000) {
+                    System.out.println("命令在队列中，所以值为null【" + value + "】");
+                }
+            }
+            return null;
+        });
+        Long end = System.currentTimeMillis();
+        System.out.println("耗时： " + (end - start) + "毫秒");
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("success", true);
+        return map;
+    }
+    
+    @RequestMapping(value = "/publish")
+    @ResponseBody
+    public Map<String, Object> testPublish() {
+        List list = new ArrayList<>();
+        list.add("java");
+        list.add("python");
+        list.add("c++");
+        redisTemplate.convertAndSend("topic1", list);
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("success", true);
         return map;
