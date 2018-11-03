@@ -1,10 +1,15 @@
 package com.lay.redis;
 
+import org.apache.ibatis.annotations.Mapper;
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ApplicationContext;
 
 @SpringBootApplication
+@MapperScan(basePackages = "com.lay.redis", annotationClass = Mapper.class)
+@EnableCaching
 public class SpringbootRedisApplication {
     
     public static void main(String[] args) {

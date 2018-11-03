@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lay.redis.dao.PersonDao">
+	<select id="getPerson" parameterType="long" resultType="person">
+		select id,person_name,sex,note from t_person where id=#{id}
+	</select>
+	<insert id="insertPerson" useGeneratedKeys="true" keyProperty="id" >
+		insert into t_person(person_name,sex,note) values(#{personName},#{sex},#{note})
+	</insert>
+	<update id="updatePerson">
+		update t_person
+		<set>
+			<if test="personName!=null">person_name=#{personName},</if>
+			<if test="sex!=null">sex=#{sex},</if>
+			<if test="note!=null">note=#{note}</if>
+		</set>
+		where id=#{id}
+	</update>
+	<select id="getAllPersons" resultType="person">
+		select id,person_name,sex,note from t_person
+	</select>
+	<delete id="deletePerson" parameterType="long">
+		delete from t_person where id=#{id}
+	</delete>
+</mapper>
