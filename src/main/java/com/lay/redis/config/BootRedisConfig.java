@@ -3,6 +3,7 @@ package com.lay.redis.config;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -20,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lay.redis.listener.RedisMessageListner;
 
 @Configuration
+@EnableCaching
 public class BootRedisConfig {
     @Autowired
     private RedisConnectionFactory redisConnectionFactory = null;
@@ -38,7 +40,13 @@ public class BootRedisConfig {
         initRedisTemplate();
     }
     
-    private void initRedisTemplate() {
+    /**
+     * redisTemplate 
+     * @return
+     * @Date        2018年11月4日 下午10:11:35 
+     * @Author      lay
+     */
+    private RedisTemplate initRedisTemplate() {
         RedisSerializer stringSerializer = redisTemplate.getStringSerializer();
         Jackson2JsonRedisSerializer<Object> jacksonSeial = new Jackson2JsonRedisSerializer<Object>(Object.class);
         ObjectMapper om = new ObjectMapper();
@@ -51,8 +59,16 @@ public class BootRedisConfig {
         redisTemplate.setValueSerializer(jacksonSeial);
         redisTemplate.setHashKeySerializer(stringSerializer);
         redisTemplate.setHashValueSerializer(jacksonSeial);
+        return redisTemplate;
+        
     }
     
+    /**
+     * 任务池
+     * @return
+     * @Date        2018年11月4日 下午10:11:02 
+     * @Author      lay
+     */
     @Bean
     public ThreadPoolTaskScheduler initTaskScheduler() {
         if (taskScheduler != null) {
@@ -64,6 +80,12 @@ public class BootRedisConfig {
         return threadPoolTaskScheduler;
     }
     
+    /**
+     * redis消息监听容器
+     * @return
+     * @Date        2018年11月4日 下午10:10:26 
+     * @Author      lay
+     */
     @Bean
     public RedisMessageListenerContainer initRedisContainer() {
         RedisMessageListenerContainer redisMessageListenerContainer = new RedisMessageListenerContainer();
