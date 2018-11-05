@@ -10,7 +10,9 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.cache.RedisCacheWriter;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 
 import com.lay.redis.utils.FastJsonRedisSerializer;
 
@@ -80,4 +82,21 @@ public class RedisCacheConfig extends CachingConfigurerSupport {
         return cacheManager;
     }
     */
+    //自定义redis缓存管理器
+    //@Bean(name = "redisCacheManager")
+    public RedisCacheManager initRedisCacheManager(RedisConnectionFactory connectionFactory) {
+        //Redis加锁的写入器
+        RedisCacheWriter writer = RedisCacheWriter.lockingRedisCacheWriter(connectionFactory);
+        //启动Redis缓存的默认设置
+        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig();
+        //设置序列化器，这里为jdk
+        config = config.serializeValuesWith(SerializationPair.fromSerializer(new JdkSerializationRedisSerializer()));
+        //禁用前缀
+        config = config.disableKeyPrefix();
+        //设置10分钟超时
+        config = config.entryTtl(Duration.ofMinutes(10));
+        //创建redis缓存管理器
+        RedisCacheManager redisCacheManager = new RedisCacheManager(writer, config);
+        return redisCacheManager;
+    }
 }

@@ -23,12 +23,15 @@ import com.lay.redis.listener.RedisMessageListner;
 @Configuration
 @EnableCaching
 public class BootRedisConfig {
+    //redis连接工厂
     @Autowired
     private RedisConnectionFactory redisConnectionFactory = null;
     
+    // redisTemplate
     @Autowired
     private RedisTemplate redisTemplate = null;
     
+    //redis消息监听器
     @Autowired
     private RedisMessageListner redisMessageListner = null;
     
@@ -64,7 +67,7 @@ public class BootRedisConfig {
     }
     
     /**
-     * 任务池
+     * 创建任务池，运行线程等待处理redis的消息
      * @return
      * @Date        2018年11月4日 下午10:11:02 
      * @Author      lay
@@ -81,17 +84,21 @@ public class BootRedisConfig {
     }
     
     /**
-     * redis消息监听容器
-     * @return
+     * 定义redis的监听容器
+     * @return  监听容器
      * @Date        2018年11月4日 下午10:10:26 
      * @Author      lay
      */
     @Bean
     public RedisMessageListenerContainer initRedisContainer() {
         RedisMessageListenerContainer redisMessageListenerContainer = new RedisMessageListenerContainer();
+        //redis连接工厂
         redisMessageListenerContainer.setConnectionFactory(redisConnectionFactory);
+        //设置运行任务池
         redisMessageListenerContainer.setTaskExecutor(taskScheduler);
+        //定义监听渠道，名称为topic1
         Topic topic = new ChannelTopic("topic1");
+        //使用监听器监听redis的消息
         redisMessageListenerContainer.addMessageListener(redisMessageListner, topic);
         return redisMessageListenerContainer;
     }
